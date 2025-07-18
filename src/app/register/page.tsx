@@ -2,9 +2,15 @@
 
 import { useForm } from "react-hook-form";
 import { client } from "@/types/client.type";
+//import { db } from "@/app/lib/firebase.config";
+import { db } from "../../../firebase.config";
+import { addDoc, collection } from "firebase/firestore";
+import { useState } from "react";
 
 const Page = () => {
-  const { register, handleSubmit, formState: { errors } } = useForm<client>({
+  const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  const { register, handleSubmit, formState: { errors }, reset } = useForm<client>({
     defaultValues: {
       firstname: "",
       lastname: "",
@@ -15,12 +21,21 @@ const Page = () => {
     }
   });
 
-  const onSubmit = (data: client) => {
-    const parsedData = {
-      ...data,
-      date: new Date(data.date),
-    };
-    console.log(parsedData);
+  const onSubmit = async (data: client) => {
+    try {
+      const parsedData = {
+        ...data,
+        date: new Date(data.date).toISOString(),
+        createdAt: new Date().toISOString(),
+      };
+
+      await addDoc(collection(db, "appointments"), parsedData);
+      setSubmitMessage({ type: 'success', text: "✅ Cita registrada exitosamente." });
+      reset();
+    } catch (error) {
+      console.error("Error al registrar cita:", error);
+      setSubmitMessage({ type: 'error', text: "❌ Ocurrió un error al guardar la cita." });
+    }
   };
 
   return (
@@ -110,6 +125,16 @@ const Page = () => {
               Registrar Cita
             </button>
           </div>
+
+          {submitMessage && (
+            <p
+              className={`text-center mt-4 text-sm font-medium ${
+                submitMessage.type === 'success' ? 'text-green-600' : 'text-red-600'
+              }`}
+            >
+              {submitMessage.text}
+            </p>
+          )}
         </form>
       </div>
     </div>
