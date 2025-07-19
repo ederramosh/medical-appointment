@@ -2,10 +2,8 @@
 
 import { useForm } from "react-hook-form";
 import { client } from "@/types/client.type";
-//import { db } from "@/app/lib/firebase.config";
-import { db } from "../../../firebase.config";
-import { addDoc, collection } from "firebase/firestore";
 import { useState } from "react";
+import { registerAppointment } from "../services/appointments.service";
 
 const Page = () => {
   const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -23,13 +21,7 @@ const Page = () => {
 
   const onSubmit = async (data: client) => {
     try {
-      const parsedData = {
-        ...data,
-        date: new Date(data.date).toISOString(),
-        createdAt: new Date().toISOString(),
-      };
-
-      await addDoc(collection(db, "appointments"), parsedData);
+      await registerAppointment(data);
       setSubmitMessage({ type: 'success', text: "✅ Cita registrada exitosamente." });
       reset();
     } catch (error) {
@@ -39,7 +31,7 @@ const Page = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-10 px-4">
+    <div className="flex items-center justify-center bg-gray-50 py-10 px-4">
       <div className="w-full max-w-xl bg-white p-8 rounded-2xl shadow-md">
         <h1 className="text-3xl font-bold text-center text-gray-800 mb-6">Registro de Citas</h1>
         
